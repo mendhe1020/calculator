@@ -53,11 +53,12 @@ pipeline {
       steps {
         withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
           sh '''
+              cd "${WORKSPACE}" || exit 1
               git config user.email "anurag.mendhe14@gmail.com"
               git config user.name "${GIT_USER_NAME}"
               sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" k8s/deployment.yaml
               git add k8s/deployment.yaml
-              git commit -m "Update deployment image to version ${BUILD_NUMBER}"
+              git commit -m "Update deployment image to version ${BUILD_NUMBER}" || echo "No changes to commit"
               git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
           '''
         }
