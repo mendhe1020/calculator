@@ -18,15 +18,6 @@ pipeline {
         sh 'php -l index.php'
       }
     }
-    stage('Install Docker') {
-      steps {
-        // Install Docker in the container
-        sh '''
-          apt-get update
-          apt-get install -y docker.io
-        '''
-      }
-    }
     stage('Build Docker Image') {
       environment {
         DOCKER_IMAGE = "anurag1020/php-app:${BUILD_NUMBER}"
@@ -52,14 +43,17 @@ pipeline {
       }
       steps {
         withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
-          sh '''
+          dir("${WORKSPACE}") {
+            // Ensure we're in the correct directory before running git commands
+            sh '''
               git config user.email "anurag.mendhe14@gmail.com"
               git config user.name "${GIT_USER_NAME}"
               sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" k8s/deployment.yaml
               git add k8s/deployment.yaml
               git commit -m "Update deployment image to version ${BUILD_NUMBER}"
               git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
-          '''
+            '''
+          }
         }
       }
     }
