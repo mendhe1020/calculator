@@ -1,20 +1,18 @@
 pipeline {
   agent {
     docker {
-      image 'php:8.2-cli'
+      image 'docker:20.10.7' // Use a Docker image that has Docker installed
       args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // Mount Docker socket for host Docker access
     }
   }
   stages {
     stage('Checkout') {
       steps {
-        // Checkout the PHP application code
         git branch: 'main', url: 'https://github.com/mendhe1020/calculator.git'
       }
     }
     stage('Code Linting') {
       steps {
-        // Run PHP linting
         sh 'php -l index.php'
       }
     }
@@ -44,7 +42,6 @@ pipeline {
       steps {
         withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
           dir("${WORKSPACE}") {
-            // Ensure we're in the correct directory before running git commands
             sh '''
               git config user.email "anurag.mendhe14@gmail.com"
               git config user.name "${GIT_USER_NAME}"
