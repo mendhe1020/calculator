@@ -1,19 +1,30 @@
 pipeline {
   agent {
     docker {
-      image 'docker:20.10.7' // Use a Docker image that has Docker installed
+      image 'php:8.2-cli'
       args '--user root -v /var/run/docker.sock:/var/run/docker.sock' // Mount Docker socket for host Docker access
     }
   }
   stages {
     stage('Checkout') {
       steps {
+        // Checkout the PHP application code
         git branch: 'main', url: 'https://github.com/mendhe1020/calculator.git'
       }
     }
     stage('Code Linting') {
       steps {
+        // Run PHP linting
         sh 'php -l index.php'
+      }
+    }
+    stage('Install Docker') {
+      steps {
+        // Install Docker in the container
+        sh '''
+          apt-get update
+          apt-get install -y docker.io
+        '''
       }
     }
     stage('Build Docker Image') {
@@ -41,16 +52,14 @@ pipeline {
       }
       steps {
         withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
-          dir("${WORKSPACE}") {
-            sh '''
+          sh '''
               git config user.email "anurag.mendhe14@gmail.com"
               git config user.name "${GIT_USER_NAME}"
               sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" k8s/deployment.yaml
               git add k8s/deployment.yaml
               git commit -m "Update deployment image to version ${BUILD_NUMBER}"
               git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
-            '''
-          }
+          '''
         }
       }
     }
