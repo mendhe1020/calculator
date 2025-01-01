@@ -18,6 +18,15 @@ pipeline {
         sh 'php -l index.php'
       }
     }
+    stage('Install Docker') {
+      steps {
+        // Install Docker in the container
+        sh '''
+          apt-get update
+          apt-get install -y docker.io
+        '''
+      }
+    }
     stage('Build Docker Image') {
       environment {
         DOCKER_IMAGE = "anurag1020/php-app:${BUILD_NUMBER}"
