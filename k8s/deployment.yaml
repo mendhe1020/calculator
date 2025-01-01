@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-blog-deployment
+  labels:
+    app: php-blog
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: php-blog
+  template:
+    metadata:
+      labels:
+        app: php-blog
+    spec:
+      containers:
+        - name: php-blog
+          image: anurag1020/php-app:v1 # Ensure this image is pushed to a container registry
+          ports:
+            - containerPort: 80
